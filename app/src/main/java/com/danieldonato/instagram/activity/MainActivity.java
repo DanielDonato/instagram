@@ -1,7 +1,9 @@
-package com.danieldonato.instagram;
+package com.danieldonato.instagram.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import com.danieldonato.instagram.R;
 
 public class MainActivity extends AppCompatActivity {
 
