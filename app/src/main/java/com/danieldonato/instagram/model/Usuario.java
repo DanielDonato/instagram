@@ -1,5 +1,9 @@
 package com.danieldonato.instagram.model;
 
+import com.danieldonato.instagram.helper.ConfiguracaoFirebase;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Exclude;
+
 public class Usuario {
 
     private String id;
@@ -9,6 +13,12 @@ public class Usuario {
     private String caminhoFoto;
 
     public Usuario(){}
+
+    public void salvar(){
+        DatabaseReference firebaseRef = ConfiguracaoFirebase.getReferenceFirebase();
+        DatabaseReference usuariosRef = firebaseRef.child("usuarios").child(getId());
+        usuariosRef.setValue(this);
+    }
 
     public Usuario(String id, String nome, String email, String senha, String caminhoFoto) {
         this.id = id;
@@ -42,6 +52,7 @@ public class Usuario {
         this.email = email;
     }
 
+    @Exclude
     public String getSenha() {
         return senha;
     }
