@@ -14,11 +14,9 @@ import com.danieldonato.instagram.R;
  */
 public class PostagemFragment extends Fragment {
 
-
     public PostagemFragment() {
         // Required empty public constructor
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -26,5 +24,4 @@ public class PostagemFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_postagem, container, false);
     }
-
 }
