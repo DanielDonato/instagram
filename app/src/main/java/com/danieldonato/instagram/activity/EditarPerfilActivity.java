@@ -1,5 +1,6 @@
 package com.danieldonato.instagram.activity;
 
+import android.Manifest;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.danieldonato.instagram.R;
 import com.danieldonato.instagram.helper.ConfiguracaoFirebase;
+import com.danieldonato.instagram.helper.Permissao;
 import com.danieldonato.instagram.helper.UsuarioFirebase;
 import com.danieldonato.instagram.model.Usuario;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -42,10 +44,16 @@ public class EditarPerfilActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private String identificadorUsuario;
 
+    private String[] permissoesNecessarias = new String[]{
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editar_perfil);
+
+        Permissao.validarPermissoes(permissoesNecessarias, this, 1);
 
         usuarioLogado = UsuarioFirebase.getDadosUsuarioLogado();
         storageRef = ConfiguracaoFirebase.getFirebaseStorage();
