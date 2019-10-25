@@ -8,10 +8,12 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.danieldonato.instagram.R;
+import com.danieldonato.instagram.adapter.AdapterGrid;
 import com.danieldonato.instagram.helper.ConfiguracaoFirebase;
 import com.danieldonato.instagram.helper.UsuarioFirebase;
 import com.danieldonato.instagram.model.Postagem;
@@ -20,6 +22,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.nostra13.universalimageloader.cache.disc.naming.HashCodeFileNameGenerator;
+import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +40,8 @@ public class PerfilAmigoActivity extends AppCompatActivity {
     private Usuario usuarioLogado;
     private Button buttonAcaoPerfil;
     private CircleImageView imagePerfil;
+    private GridView gridViewPerfil;
+    private AdapterGrid adapterGrid;
 
     private DatabaseReference usuariosRef;
     private DatabaseReference usuarioAmigoRef;
@@ -83,6 +91,7 @@ public class PerfilAmigoActivity extends AppCompatActivity {
                         .load(url)
                         .into(imagePerfil);
             }
+            inicializarImageLoader();
             carregarFotosPostagem();
         }
     }
@@ -140,10 +149,25 @@ public class PerfilAmigoActivity extends AppCompatActivity {
         }
     }
 
+    private void inicializarImageLoader() {
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration
+                .Builder(this)
+                .memoryCache(new LruMemoryCache(2 * 1024 * 1024))
+                .memoryCacheSize(2 * 1024 * 1024)
+                .diskCacheSize(50 * 1024 * 1024)
+                .diskCacheFileCount(100)
+                .diskCacheFileNameGenerator(new HashCodeFileNameGenerator())
+                .build();
+        ImageLoader.getInstance().init(config);
+    }
+
     public void carregarFotosPostagem(){
         postagensUsuarioRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                int tamanhoGrid = getResources().getDisplayMetrics().widthPixels;
+                int tamanhoImagem = tamanhoGrid / 3;
+                gridViewPerfil.setColumnWidth(tamanhoImagem);
                 List<String> urlFotos = new ArrayList<>();
                 for(DataSnapshot ds : dataSnapshot.getChildren()){
                     Postagem postagem = ds.getValue(Postagem.class);
@@ -151,6 +175,10 @@ public class PerfilAmigoActivity extends AppCompatActivity {
                 }
                 int qtePostagens = urlFotos.size();
                 textPublicacoes.setText(String.valueOf(qtePostagens));
+
+                adapterGrid = new AdapterGrid(getApplicationContext(), R.layout.grid_postagem, urlFotos);
+                gridViewPerfil.setAdapter(adapterGrid);
+
             }
 
             @Override
@@ -226,6 +254,7 @@ public class PerfilAmigoActivity extends AppCompatActivity {
 
     private void inicializarComponentes(){
         imagePerfil = findViewById(R.id.imagePerfil);
+        gridViewPerfil = findViewById(R.id.gridViewPerfil);
         buttonAcaoPerfil = findViewById(R.id.buttonAcaoPerfil);
         textPublicacoes = findViewById(R.id.textPublicacoes);
         textSeguidores = findViewById(R.id.textSeguidores);
