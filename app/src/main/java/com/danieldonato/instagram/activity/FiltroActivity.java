@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputEditText;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -58,8 +59,7 @@ public class FiltroActivity extends AppCompatActivity {
     private List<ThumbnailItem> listaFiltros;
     private String idUsuarioLogado;
     private Usuario usuarioLogado;
-    private ProgressBar progressBar;
-    private boolean estaCarregando;
+    private AlertDialog dialog;
 
     private RecyclerView recyclerFiltros;
     private AdapterMiniaturas adapterMiniaturas;
@@ -79,7 +79,6 @@ public class FiltroActivity extends AppCompatActivity {
         imageFotoEscolhida = findViewById(R.id.imageFotoEscolhida);
         recyclerFiltros = findViewById(R.id.recyclerFiltros);
         textDescricaoFiltro = findViewById(R.id.textDescricaoFiltro);
-        progressBar = findViewById(R.id.progressFiltro);
 
         Toolbar toolbar = findViewById(R.id.toolbarPrincipal);
         toolbar.setTitle("Filtros");
@@ -152,62 +151,58 @@ public class FiltroActivity extends AppCompatActivity {
     }
 
     private void publicarPostagem(){
-        if(estaCarregando){
-            Toast.makeText(getApplicationContext(),
-                    "Carregando dados, aguarde!",
-                    Toast.LENGTH_SHORT).show();
-        }else {
-            final Postagem postagem = new Postagem();
-            postagem.setIdUsuario(idUsuarioLogado);
-            postagem.setDescricao(textDescricaoFiltro.getText().toString());
+        abrirDialogCarregametno("Salvando Postagem!");
+        final Postagem postagem = new Postagem();
+        postagem.setIdUsuario(idUsuarioLogado);
+        postagem.setDescricao(textDescricaoFiltro.getText().toString());
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            imagemFiltro.compress(Bitmap.CompressFormat.JPEG, 70, baos);
-            byte[] dadosImagem = baos.toByteArray();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        imagemFiltro.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+        byte[] dadosImagem = baos.toByteArray();
 
-            StorageReference storageRef = ConfiguracaoFirebase.getFirebaseStorage();
-            StorageReference imageRef = storageRef
-                    .child("imagens")
-                    .child("postagens")
-                    .child(postagem.getId() + ".jpeg");
-            UploadTask uploadTask = imageRef.putBytes(dadosImagem);
-            uploadTask.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
+        StorageReference storageRef = ConfiguracaoFirebase.getFirebaseStorage();
+        StorageReference imageRef = storageRef
+                .child("imagens")
+                .child("postagens")
+                .child(postagem.getId() + ".jpeg");
+        UploadTask uploadTask = imageRef.putBytes(dadosImagem);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(FiltroActivity.this,
+                        "Erro ao salvar a imagem", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                Uri url = taskSnapshot.getUploadSessionUri();
+                postagem.setCaminhoFoto(url.toString());
+                if (postagem.salvar()) {
+                    int qtdPostagem = usuarioLogado.getPostagens() + 1;
+                    usuarioLogado.setPostagens(qtdPostagem);
+                    usuarioLogado.atualizarQtdPostagem();
                     Toast.makeText(FiltroActivity.this,
-                            "Erro ao salvar a imagem", Toast.LENGTH_SHORT).show();
+                            "Sucesso ao salvar postagem", Toast.LENGTH_SHORT).show();
+                    dialog.cancel();
+                    finish();
                 }
-            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+            }
+        });
 
-                    Uri url = taskSnapshot.getUploadSessionUri();
-                    postagem.setCaminhoFoto(url.toString());
-                    if (postagem.salvar()) {
-                        int qtdPostagem = usuarioLogado.getPostagens() + 1;
-                        usuarioLogado.setPostagens(qtdPostagem);
-                        usuarioLogado.atualizarQtdPostagem();
-                        Toast.makeText(FiltroActivity.this,
-                                "Sucesso ao salvar postagem", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
-                }
-            });
-        }
     }
 
-    private void carregando(boolean estado){
-        if(estado){
-            estaCarregando = true;
-            progressBar.setVisibility(View.VISIBLE);
-        }else {
-            estaCarregando = false;
-            progressBar.setVisibility(View.GONE);
-        }
+    private void abrirDialogCarregametno(String titulo){
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle(titulo);
+        alert.setCancelable(false);
+        alert.setView(R.layout.carregamento);
+        dialog = alert.create();
+        dialog.show();
     }
 
     private void recuperarDadosUsuarioLogado(){
-        carregando(true);
+        abrirDialogCarregametno("Carregando dados, aguarde!");
 
         usuarioLogadoRef = usuariosRef.child(idUsuarioLogado);
         usuarioLogadoRef.addValueEventListener(
@@ -215,7 +210,7 @@ public class FiltroActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         usuarioLogado = dataSnapshot.getValue(Usuario.class);
-                        carregando(false);
+                        dialog.cancel();
                     }
 
                     @Override

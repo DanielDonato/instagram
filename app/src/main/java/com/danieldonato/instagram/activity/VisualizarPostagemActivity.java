@@ -39,8 +39,6 @@ public class VisualizarPostagemActivity extends AppCompatActivity {
         if(bundle != null){
             Postagem postagem = (Postagem) bundle.getSerializable("postagem");
             Usuario usuario = (Usuario) bundle.getSerializable("usuario");
-            Log.d("_null", (postagem != null) + "");
-            Log.d("_null", (usuario != null) + "");
 
             if(usuario.getCaminhoFoto() != null){
                 Uri uri = Uri.parse(usuario.getCaminhoFoto());
