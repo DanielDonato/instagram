@@ -1,9 +1,13 @@
 package com.danieldonato.instagram.model;
 
 import com.danieldonato.instagram.helper.ConfiguracaoFirebase;
+import com.danieldonato.instagram.helper.UsuarioFirebase;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Postagem implements Serializable {
 
@@ -19,12 +23,28 @@ public class Postagem implements Serializable {
         setId(idPostagem);
     }
 
-    public boolean salvar(){
+    public boolean salvar(DataSnapshot seguidoresSnapshot){ // Logica feita para não precisar gerar feed no app => Solução ter um beckend para gerar esse feed
+        Map obj = new HashMap();
+        Usuario usuarioLogado = UsuarioFirebase.getDadosUsuarioLogado();
         DatabaseReference firebaseRef = ConfiguracaoFirebase.getReferenceFirebase();
-        DatabaseReference postagensRef = firebaseRef.child("postagens")
-                .child(getIdUsuario())
-                .child(getId());
-        postagensRef.setValue(this);
+
+        String combinacaoId = "/" + getIdUsuario() + "/" + getId();
+        obj.put("/postagens" + combinacaoId, this);
+        for(DataSnapshot seguidores : seguidoresSnapshot.getChildren()){
+            Map<String, Object> dadosSeguidor = new HashMap<>();
+            dadosSeguidor.put("fotoPostagem", getCaminhoFoto());
+            dadosSeguidor.put("descricao", getDescricao());
+            dadosSeguidor.put("id", getId());
+            dadosSeguidor.put("nome", usuarioLogado.getNome());
+            dadosSeguidor.put("fotoUsuario" , usuarioLogado.getCaminhoFoto());
+
+            String idSeguidor = seguidores.getKey();
+
+            String idsAtualizacao = "/" + idSeguidor + "/" + getId();
+            obj.put("/feed" + idsAtualizacao, dadosSeguidor);
+        }
+
+        firebaseRef.updateChildren(obj);
         return true;
     }
 
