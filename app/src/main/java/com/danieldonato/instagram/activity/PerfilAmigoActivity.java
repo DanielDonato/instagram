@@ -128,8 +128,8 @@ public class PerfilAmigoActivity extends AppCompatActivity {
 
     private void verificaSegueUsuarioAmigo(){
         DatabaseReference seguidoreRef = seguidoresRef
-                .child(idUsuarioLogado)
-                .child(usuarioSelecionado.getId());
+                .child(usuarioSelecionado.getId())
+                .child(idUsuarioLogado);
         seguidoreRef.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
@@ -203,14 +203,14 @@ public class PerfilAmigoActivity extends AppCompatActivity {
     }
 
     private void salvarSeguidor(Usuario usuarioLogado, Usuario usuarioAmigo){
-        Map<String, Object> dadosAmigo = new HashMap<>();
-        dadosAmigo.put("nome", usuarioAmigo.getNome());
-        dadosAmigo.put("caminhoFoto", usuarioAmigo.getCaminhoFoto());
+        Map<String, Object> dadosUsuarioLogado = new HashMap<>();
+        dadosUsuarioLogado.put("nome", usuarioLogado.getNome());
+        dadosUsuarioLogado.put("caminhoFoto", usuarioLogado.getCaminhoFoto());
 
         DatabaseReference seguidorRef = seguidoresRef
-                .child(usuarioLogado.getId())
-                .child(usuarioAmigo.getId());
-        seguidorRef.setValue(dadosAmigo);
+                .child(usuarioAmigo.getId())
+                .child(usuarioLogado.getId());
+        seguidorRef.setValue(dadosUsuarioLogado);
         buttonAcaoPerfil.setText("Seguindo");
         buttonAcaoPerfil.setOnClickListener(null);
 
