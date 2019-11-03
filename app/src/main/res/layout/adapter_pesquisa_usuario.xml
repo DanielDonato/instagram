@@ -30,4 +30,7 @@
             android:paddingLeft="10dp"
             android:text="Nome Do Usuario" />
     </LinearLayout>
+
+    <include layout="@layout/divisor"/>
+
 </LinearLayout>
