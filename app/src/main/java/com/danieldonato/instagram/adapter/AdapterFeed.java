@@ -1,6 +1,7 @@
 package com.danieldonato.instagram.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.danieldonato.instagram.R;
+import com.danieldonato.instagram.activity.ComentariosActivity;
 import com.danieldonato.instagram.helper.ConfiguracaoFirebase;
 import com.danieldonato.instagram.helper.UsuarioFirebase;
 import com.danieldonato.instagram.model.Feed;
@@ -64,6 +66,15 @@ public class AdapterFeed extends RecyclerView.Adapter<AdapterFeed.MyViewHolder> 
 
         myViewHolder.descricao.setText(feed.getDescricao());
         myViewHolder.nome.setText(feed.getNomeUsuario());
+        myViewHolder.visualizarComentario.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(context, ComentariosActivity.class);
+                i.putExtra("idPostagem", feed.getId());
+                context.startActivity(i);
+
+            }
+        });
 
         DatabaseReference curtidasRef = ConfiguracaoFirebase.getReferenceFirebase()
                 .child("postagens-curtidas")
